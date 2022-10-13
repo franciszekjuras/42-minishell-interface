@@ -6,7 +6,7 @@
 /*   By: fjuras <fjuras@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/12 20:12:03 by fjuras            #+#    #+#             */
-/*   Updated: 2022/10/13 15:01:11 by fjuras           ###   ########.fr       */
+/*   Updated: 2022/10/13 15:12:28 by fjuras           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,9 @@ int	test_dummy_passing(void)
 	t_line	line;
 	t_line	expect;
 	int		i;
+	int		res;
 
-	test_start(__func__);
+	TEST_START();
 	i = 0;
 	test_line_init(&expect, 2);
 	test_prog_args(&expect.progs[i], 2, "ls", "-l");
@@ -44,7 +45,8 @@ int	test_dummy_passing(void)
 	test_prog_redirs(&expect.progs[i++], NULL, "out.txt");
 	test_line_end(&expect, i);
 	line = dummy_parser();
-	return (test_end(__func__, test_line_eq_print(&line, &expect)));
+	res = test_line_eq_print(&line, &expect);
+	return (TEST_END(res));
 }
 
 int	test_dummy_not_passing(void)
@@ -52,8 +54,9 @@ int	test_dummy_not_passing(void)
 	t_line	line;
 	t_line	expect;
 	int		i;
+	int		res;
 
-	test_start(__func__);
+	TEST_START();
 	i = 0;
 	test_line_init(&expect, 3);
 	test_prog_args(&expect.progs[i], 2, "ls", "-l");
@@ -64,7 +67,8 @@ int	test_dummy_not_passing(void)
 	test_prog_redirs(&expect.progs[i++], NULL, NULL);
 	test_line_end(&expect, i);
 	line = dummy_parser();	
-	return (test_end(__func__, test_line_eq_print(&line, &expect)));
+	res = test_line_eq_print(&line, &expect);
+	return (TEST_END(res));
 }
 
 int	test_dummy_broken(void)
@@ -72,8 +76,9 @@ int	test_dummy_broken(void)
 	t_line	line;
 	t_line	expect;
 	int		i;
+	int		res;
 
-	test_start(__func__);
+	TEST_START();
 	i = 0;
 	test_line_init(&expect, 3);
 	test_prog_args(&expect.progs[i], 2, "ls", "-l");
@@ -81,12 +86,13 @@ int	test_dummy_broken(void)
 	test_line_end(&expect, i);
 	line = dummy_parser();	
 	return (test_end(__func__, test_line_eq_print(&line, &expect)));
+	return (TEST_END(res));
 }
 
 int (*const test_functions[])() = {
     test_dummy_passing,
     test_dummy_not_passing,
-	test_dummy_broken,
+	// test_dummy_broken,
     NULL,
 };
 

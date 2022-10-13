@@ -7,6 +7,13 @@
 # include <stdarg.h>
 # include "line.h"
 
+# define TEST_START() test_start(__func__)
+# define TEST_END(res) test_end(__func__, (res))
+
+# define TEST_STR_RUN "\e[1;36m[RUN   ]\e[m"
+# define TEST_STR_OK "\e[1;32m[    OK]\e[m"
+# define TEST_STR_FAIL "\e[1;31m[  FAIL]\e[m"
+
 static void	test_printarr(char **arr, char *sep)
 {
 	int	i;
@@ -157,15 +164,15 @@ static void	test_line_end(t_line *line, int it)
 
 static void	test_start(const char *test_name)
 {
-	printf("[RUN   ] %s\n", test_name);
+	printf("%s %s\n", TEST_STR_RUN, test_name);
 }
 
 static int	test_end(const char *test_name, int success)
 {
 	if (success)
-		printf("[    OK] %s\n", test_name);
+		printf("%s %s\n", TEST_STR_OK, test_name);
 	else
-		printf("[  FAIL] %s\n", test_name);
+		printf("%s %s\n", TEST_STR_FAIL, test_name);
 	return (success);
 }
 
