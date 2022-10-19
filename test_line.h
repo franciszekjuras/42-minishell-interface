@@ -14,7 +14,7 @@
 # define TEST_STR_OK "\e[1;32m[    OK]\e[m"
 # define TEST_STR_FAIL "\e[1;31m[  FAIL]\e[m"
 
-static void	test_printarr(char **arr, char *sep)
+void	test_printarr(char **arr, char *sep)
 {
 	int	i;
 	int	n;
@@ -32,7 +32,7 @@ static void	test_printarr(char **arr, char *sep)
 	}
 }
 
-static void	test_line_print(const t_line *line)
+void	test_line_print(const t_line *line)
 {
 	int		i;
 	t_prog	*prog;
@@ -54,7 +54,7 @@ static void	test_line_print(const t_line *line)
 }
 
 
-static int	test_strarr_eq(char **actual, char **expected)
+int	test_strarr_eq(char **actual, char **expected)
 {
 	int	i;
 
@@ -68,7 +68,7 @@ static int	test_strarr_eq(char **actual, char **expected)
 	return (actual[i] == expected[i]);
 }
 
-static int	test_redir_eq(t_redir *actual, t_redir *expected)
+int	test_redir_eq(t_redir *actual, t_redir *expected)
 {	
 	if (actual->name == NULL || expected->name == NULL)
 		return (actual->name == expected->name);
@@ -76,7 +76,7 @@ static int	test_redir_eq(t_redir *actual, t_redir *expected)
 		return (strcmp(actual->name, expected->name) == 0);	
 }
 
-static int	test_prog_eq(t_prog *actual, t_prog *expected)
+int	test_prog_eq(t_prog *actual, t_prog *expected)
 {
 	if (!test_redir_eq(&actual->in_redir, &expected->in_redir))
 		return (0);
@@ -87,7 +87,7 @@ static int	test_prog_eq(t_prog *actual, t_prog *expected)
 	return (1);
 }
 
-static int	test_line_eq(t_line *actual, t_line *expected)
+int	test_line_eq(t_line *actual, t_line *expected)
 {
 	int	i;
 
@@ -103,14 +103,14 @@ static int	test_line_eq(t_line *actual, t_line *expected)
 	return (1);
 }
 
-static int	test_line_eq_print(t_line *actual, t_line *expected)
+int	test_line_eq_print(t_line *actual, t_line *expected)
 {
 	int	eq;
 
 	eq = test_line_eq(actual, expected);
 	if (!eq)
 	{
-		printf("Lines don't match:\n");		
+		printf("Lines don't match:\n");
 		printf("Actual  : ");
 		test_line_print(actual);
 		printf("Expected: ");
@@ -119,7 +119,19 @@ static int	test_line_eq_print(t_line *actual, t_line *expected)
 	return (eq);
 }
 
-static void	test_prog_args(t_prog *prog, int size, ...)
+
+int	test_expect_retval(int actual, int expected)
+{
+	if (actual != expected)
+	{
+		printf("Return value does not match:\n");
+		printf("Actual  : %d\n", actual);
+		printf("Expected: %d\n", expected);
+	}
+	return (actual == expected);
+}
+
+void	test_prog_args(t_prog *prog, int size, ...)
 {
 	int		i;
 	va_list vargs;
@@ -133,7 +145,7 @@ static void	test_prog_args(t_prog *prog, int size, ...)
 	va_end(vargs);
 }
 
-static void	test_prog_redirs(t_prog *prog, const char *in, const char *out)
+void	test_prog_redirs(t_prog *prog, const char *in, const char *out)
 {
 	if (in != NULL)
 		prog->in_redir.name = strdup(in);
@@ -145,13 +157,13 @@ static void	test_prog_redirs(t_prog *prog, const char *in, const char *out)
 		prog->out_redir.name = NULL;
 }
 
-static void	test_line_init(t_line *line, int size)
+void	test_line_init(t_line *line, int size)
 {
 	line->size = size;
 	line->progs = calloc(size, sizeof(t_prog));
 }
 
-static void	test_line_end(t_line *line, int it)
+void	test_line_end(t_line *line, int it)
 {
 	if (line->size != it)
 	{
@@ -162,12 +174,12 @@ static void	test_line_end(t_line *line, int it)
 	}
 }
 
-static void	test_start(const char *test_name)
+void	test_start(const char *test_name)
 {
 	printf("%s %s\n", TEST_STR_RUN, test_name);
 }
 
-static int	test_end(const char *test_name, int success)
+int	test_end(const char *test_name, int success)
 {
 	if (success)
 		printf("%s %s\n", TEST_STR_OK, test_name);
