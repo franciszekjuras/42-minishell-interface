@@ -25,9 +25,9 @@ void	test_printarr(char **arr, char *sep)
 	i = 0;
 	while (i < n)
 	{
-		printf("%s", arr[i]);
+		fprintf(stderr, "%s", arr[i]);
 		if (i + 1 < n)
-			printf("%s", sep);
+			fprintf(stderr, "%s", sep);
 		++i;
 	}
 }
@@ -42,15 +42,15 @@ void	test_line_print(const t_line *line)
 	{
 		prog = &line->progs[i];
 		if (prog->in_redir.name != NULL)
-			printf("<%s ", prog->in_redir.name);
+			fprintf(stderr, "<%s ", prog->in_redir.name);
 		test_printarr(prog->args, "\033[1;30m·\033[0;m");
 		if (prog->out_redir.name != NULL)
-			printf(" >%s", prog->out_redir.name);
+			fprintf(stderr, " >%s", prog->out_redir.name);
 		if (i + 1 < line->size)
-			printf(" | ");
+			fprintf(stderr, " | ");
 		++i;
 	}
-	printf("\n");
+	fprintf(stderr, "\n");
 }
 
 
@@ -110,10 +110,10 @@ int	test_line_eq_print(t_line *actual, t_line *expected)
 	eq = test_line_eq(actual, expected);
 	if (!eq)
 	{
-		printf("Lines don't match:\n");
-		printf("Actual  : ");
+		fprintf(stderr, "Lines don't match:\n");
+		fprintf(stderr, "Actual  : ");
 		test_line_print(actual);
-		printf("Expected: ");
+		fprintf(stderr, "Expected: ");
 		test_line_print(expected);
 	}
 	return (eq);
@@ -124,9 +124,9 @@ int	test_expect_retval(int actual, int expected)
 {
 	if (actual != expected)
 	{
-		printf("Return value does not match:\n");
-		printf("Actual  : %d\n", actual);
-		printf("Expected: %d\n", expected);
+		fprintf(stderr, "Return value does not match:\n");
+		fprintf(stderr, "Actual  : %d\n", actual);
+		fprintf(stderr, "Expected: %d\n", expected);
 	}
 	return (actual == expected);
 }
@@ -167,7 +167,7 @@ void	test_line_end(t_line *line, int it)
 {
 	if (line->size != it)
 	{
-		printf("Error: Number of initialized line->progs (%d)"
+		fprintf(stderr, "Error: Number of initialized line->progs (%d)"
 			" doesn't match line->size (%d)\n",
 			it, line->size);
 		exit(1);
@@ -176,15 +176,15 @@ void	test_line_end(t_line *line, int it)
 
 void	test_start(const char *test_name)
 {
-	printf("%s %s\n", TEST_STR_RUN, test_name);
+	fprintf(stderr, "%s %s\n", TEST_STR_RUN, test_name);
 }
 
 int	test_end(const char *test_name, int success)
 {
 	if (success)
-		printf("%s %s\n", TEST_STR_OK, test_name);
+		fprintf(stderr, "%s %s\n", TEST_STR_OK, test_name);
 	else
-		printf("%s %s\n", TEST_STR_FAIL, test_name);
+		fprintf(stderr, "%s %s\n", TEST_STR_FAIL, test_name);
 	return (success);
 }
 
