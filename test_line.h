@@ -1,10 +1,13 @@
 #ifndef TEST_LINE_H
 # define TEST_LINE_H
 
+# include <errno.h>
+# include <fcntl.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
 # include <stdarg.h>
+# include <unistd.h>
 # include "line.h"
 
 # define TEST_START() test_start(__func__)
@@ -13,6 +16,10 @@
 # define TEST_STR_RUN "\e[1;36m[RUN   ]\e[m"
 # define TEST_STR_OK "\e[1;32m[    OK]\e[m"
 # define TEST_STR_FAIL "\e[1;31m[  FAIL]\e[m"
+# define TEST_DIF_PLUS "\e[32m+ %s\n\e[m"
+# define TEST_DIF_MINUS "\e[31m- %s\n\e[m"
+# define TEST_FILE_LINE "\e[33m%s:%d\e[m"
+# define TEST_FROM ">>> %s:%d\n"
 
 void	test_printarr(char **arr, char *sep)
 {
@@ -120,15 +127,85 @@ int	test_line_eq_print(t_line *actual, t_line *expected)
 }
 
 
-int	test_expect_retval(int actual, int expected)
+#define test_expect_retval(...) test_expect_retval_x(__FILE__, __LINE__, __VA_ARGS__)
+int	test_expect_retval_x(const char *from, int line, int actual, int expected)
 {
 	if (actual != expected)
 	{
+		fprintf(stderr, TEST_FROM, from, line);
 		fprintf(stderr, "Return value does not match:\n");
 		fprintf(stderr, "Actual  : %d\n", actual);
 		fprintf(stderr, "Expected: %d\n", expected);
 	}
 	return (actual == expected);
+}
+
+char *test_getline(FILE *file)
+{
+	char *line;
+	ssize_t size;
+	size_t	n;
+
+	line = NULL;
+	n = 0;
+	size = getline(&line, &n, file);
+	if (size < 0)
+		return (NULL);
+	if (line[size - 1] == '\n')
+		line[size - 1] = '\0';
+	return (line);
+}
+
+
+#define test_expect_file_content(...) test_expect_file_content_x(__FILE__, __LINE__, __VA_ARGS__)
+int	test_expect_file_content_x(const char *from, int line, const char *filename, ...)
+{
+	va_list vargs;
+	char	*refline;
+	char	*actline;
+	FILE	*file;
+	int		res;
+	int		i;
+
+	file = fopen(filename, "r");
+	if (file == NULL)
+	{
+		fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+		return (0);
+	}
+	res = 0;
+	i = 1;
+	va_start(vargs, filename);
+	while (1)
+	{
+		refline = va_arg(vargs, char*);
+		actline = test_getline(file);
+		if (refline == NULL || actline == NULL)
+		{
+			if (refline == actline)
+				res = 1;
+			else if (actline == NULL)
+				fprintf(stderr, TEST_FROM TEST_FILE_LINE " EOF was not expected\n",
+					from, line, filename, i);
+			else
+				fprintf(stderr, TEST_FILE_LINE " EOF was expected\n", filename, i);
+			break;
+		}
+		if (strcmp(refline, actline) != 0)
+		{
+			fprintf(stderr, TEST_FROM TEST_FILE_LINE " does not match expected output\n",
+				from, line, filename, i);
+			fprintf(stderr, TEST_DIF_PLUS, actline);
+			fprintf(stderr, TEST_DIF_MINUS, refline);
+			break;
+		}
+		++i;
+		free(actline);
+	}
+	free(actline);
+	va_end(vargs);
+	fclose(file);
+	return (res);
 }
 
 void	test_prog_args(t_prog *prog, int size, ...)
@@ -172,6 +249,29 @@ void	test_line_end(t_line *line, int it)
 			it, line->size);
 		exit(1);
 	}
+}
+
+int	test_redirect_stdout(const char *filename)
+{
+	int	redir_fd;
+	int	stdout_fd;
+
+	redir_fd = creat(filename, 0644);
+	if (redir_fd < 0)
+	{
+		fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+		exit(1);
+	}
+	stdout_fd = dup(1);
+	dup2(redir_fd, 1);
+	close(redir_fd);
+	return (stdout_fd);
+}
+
+void	test_restore_stdout(int stdout_fd)
+{
+	dup2(stdout_fd, 1);
+	close(stdout_fd);
 }
 
 void	test_start(const char *test_name)
