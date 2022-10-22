@@ -150,7 +150,10 @@ char *test_getline(FILE *file)
 	n = 0;
 	size = getline(&line, &n, file);
 	if (size < 0)
+	{
+		free(line);
 		return (NULL);
+	}
 	if (line[size - 1] == '\n')
 		line[size - 1] = '\0';
 	return (line);

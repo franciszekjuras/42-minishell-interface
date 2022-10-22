@@ -1,37 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   line.h                                             :+:      :+:    :+:   */
+/*   line.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fjuras <fjuras@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/12 16:50:14 by fjuras            #+#    #+#             */
-/*   Updated: 2022/10/22 20:48:15 by fjuras           ###   ########.fr       */
+/*   Updated: 2022/10/22 20:16:30 by fjuras           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef LINE_H
-# define LINE_H
+#include <stdlib.h>
+#include "line.h"
 
-typedef struct s_redir
+void	args_free(char **args)
 {
-	char	*name;
-}	t_redir;
+	int	i;
 
-typedef struct s_prog
+	i = 0;
+	while (args[i] != 0)
+		free(args[i++]);
+	free(args);
+}
+
+void	line_free(t_line line)
 {
-	t_redir	in_redir;
-	t_redir	out_redir;
-	char	**args;
-}	t_prog;
+	int	i;
 
-typedef struct s_line
-{
-	t_prog	*progs;
-	int		size;
-}	t_line;
-
-void	args_free(char **args);
-void	line_free(t_line line);
-
-#endif
+	i = 0;
+	while (i < line.size)
+	{
+		args_free(line.progs[i].args);
+		++i;
+	}
+	free(line.progs);
+}
