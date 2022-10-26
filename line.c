@@ -6,7 +6,7 @@
 /*   By: fjuras <fjuras@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/12 16:50:14 by fjuras            #+#    #+#             */
-/*   Updated: 2022/10/22 20:16:30 by fjuras           ###   ########.fr       */
+/*   Updated: 2022/10/26 21:16:45 by fjuras           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,12 +25,16 @@ void	args_free(char **args)
 
 void	line_free(t_line line)
 {
-	int	i;
+	int		i;
+	t_prog	*prog;
 
 	i = 0;
 	while (i < line.size)
 	{
-		args_free(line.progs[i].args);
+		prog = &line.progs[i];
+		args_free(prog->args);
+		free(prog->in_redir.path);
+		free(prog->out_redir.path);
 		++i;
 	}
 	free(line.progs);

@@ -6,7 +6,7 @@
 /*   By: fjuras <fjuras@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/12 20:12:03 by fjuras            #+#    #+#             */
-/*   Updated: 2022/10/17 21:43:37 by fjuras           ###   ########.fr       */
+/*   Updated: 2022/10/26 20:30:30 by fjuras           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,8 @@ t_line simplest_parser(char *line_str)
 	line.progs[0].args = calloc(2, sizeof(char *));
 	line.progs[0].args[0] = strdup(line_str);
 	line.progs[0].args[1] = NULL;
-	line.progs[0].in_redir.name = NULL;
-	line.progs[0].out_redir.name = NULL;
+	line.progs[0].in_redir.path = NULL;
+	line.progs[0].out_redir.path = NULL;
 	return (line);
 }
 

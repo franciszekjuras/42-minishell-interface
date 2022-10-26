@@ -6,7 +6,7 @@
 /*   By: fjuras <fjuras@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/12 16:50:14 by fjuras            #+#    #+#             */
-/*   Updated: 2022/10/22 20:48:15 by fjuras           ###   ########.fr       */
+/*   Updated: 2022/10/26 20:29:53 by fjuras           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 typedef struct s_redir
 {
-	char	*name;
+	char	*path;
 }	t_redir;
 
 typedef struct s_prog

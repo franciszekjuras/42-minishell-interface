@@ -1,6 +1,7 @@
 #ifndef TEST_LINE_H
 # define TEST_LINE_H
 
+# include <dirent.h>
 # include <errno.h>
 # include <fcntl.h>
 # include <stdio.h>
@@ -11,6 +12,7 @@
 # include "line.h"
 
 # define TEST_START() test_start(__func__)
+# define TEST_START_CLEAN() test_start_clean(__func__)
 # define TEST_END(res) test_end(__func__, (res))
 
 # define TEST_STR_RUN "\e[1;36m[RUN   ]\e[m"
@@ -18,8 +20,28 @@
 # define TEST_STR_FAIL "\e[1;31m[  FAIL]\e[m"
 # define TEST_DIF_PLUS "\e[32m+ %s\n\e[m"
 # define TEST_DIF_MINUS "\e[31m- %s\n\e[m"
-# define TEST_FILE_LINE "\e[33m%s:%d\e[m"
-# define TEST_FROM ">>> %s:%d\n"
+# define TEST_FILE_LINE "\e[36m%s:%d\e[m"
+# define TEST_FILE "\e[36m%s\e[m"
+# define TEST_FROM ">>> \e[33m%s:%d\e[m\n"
+
+static int test_remove_files_from_dir(char *dir_path)
+{
+	DIR				*dir;
+	struct dirent	*next_file;
+	char			filepath[1024];
+
+	dir = opendir(dir_path);
+	while ( (next_file = readdir(dir)) != NULL )
+	{
+		if (strcmp(next_file->d_name, ".") != 0 && strcmp(next_file->d_name, "..") != 0)
+		{
+			sprintf(filepath, "%s/%s", dir_path, next_file->d_name);
+			remove(filepath);
+		}
+	}
+	closedir(dir);
+	return 0;
+}
 
 void	test_printarr(char **arr, char *sep)
 {
@@ -48,11 +70,11 @@ void	test_line_print(const t_line *line)
 	while (i < line->size)
 	{
 		prog = &line->progs[i];
-		if (prog->in_redir.name != NULL)
-			fprintf(stderr, "<%s ", prog->in_redir.name);
+		if (prog->in_redir.path != NULL)
+			fprintf(stderr, "<%s ", prog->in_redir.path);
 		test_printarr(prog->args, "\033[1;30m·\033[0;m");
-		if (prog->out_redir.name != NULL)
-			fprintf(stderr, " >%s", prog->out_redir.name);
+		if (prog->out_redir.path != NULL)
+			fprintf(stderr, " >%s", prog->out_redir.path);
 		if (i + 1 < line->size)
 			fprintf(stderr, " | ");
 		++i;
@@ -77,10 +99,10 @@ int	test_strarr_eq(char **actual, char **expected)
 
 int	test_redir_eq(t_redir *actual, t_redir *expected)
 {	
-	if (actual->name == NULL || expected->name == NULL)
-		return (actual->name == expected->name);
+	if (actual->path == NULL || expected->path == NULL)
+		return (actual->path == expected->path);
 	else
-		return (strcmp(actual->name, expected->name) == 0);	
+		return (strcmp(actual->path, expected->path) == 0);
 }
 
 int	test_prog_eq(t_prog *actual, t_prog *expected)
@@ -159,6 +181,13 @@ char *test_getline(FILE *file)
 	return (line);
 }
 
+const char	*null_to_eof(const char *str)
+{
+	if (str == NULL)
+		return ("EOF");
+	else
+		return (str);
+}
 
 #define test_expect_file_content(...) test_expect_file_content_x(__FILE__, __LINE__, __VA_ARGS__)
 int	test_expect_file_content_x(const char *from, int line, const char *filename, ...)
@@ -167,58 +196,60 @@ int	test_expect_file_content_x(const char *from, int line, const char *filename,
 	char	*refline;
 	char	*actline;
 	FILE	*file;
-	int		res;
 	int		i;
+	int		full_match;
+	int		lines_differ;
 
+	full_match = 0;
+	lines_differ = 0;
 	file = fopen(filename, "r");
 	if (file == NULL)
 	{
-		fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+		fprintf(stderr, TEST_FROM TEST_FILE ": %s\n",
+			from, line, filename, strerror(errno));
 		return (0);
 	}
-	res = 0;
 	i = 1;
 	va_start(vargs, filename);
-	while (1)
+	while (!lines_differ && !full_match)
 	{
 		refline = va_arg(vargs, char*);
 		actline = test_getline(file);
 		if (refline == NULL || actline == NULL)
 		{
 			if (refline == actline)
-				res = 1;
-			else if (actline == NULL)
-				fprintf(stderr, TEST_FROM TEST_FILE_LINE " EOF was not expected\n",
-					from, line, filename, i);
+				full_match = 1;
 			else
-				fprintf(stderr, TEST_FILE_LINE " EOF was expected\n", filename, i);
-			break;
+				lines_differ = 1;
 		}
-		if (strcmp(refline, actline) != 0)
-		{
-			fprintf(stderr, TEST_FROM TEST_FILE_LINE " does not match expected output\n",
-				from, line, filename, i);
-			fprintf(stderr, TEST_DIF_PLUS, actline);
-			fprintf(stderr, TEST_DIF_MINUS, refline);
-			break;
-		}
+		else if (strcmp(refline, actline) != 0)
+			lines_differ = 1;
+		if (lines_differ)
+			fprintf(stderr, TEST_FROM TEST_FILE_LINE " does not match expected output\n"
+				TEST_DIF_PLUS TEST_DIF_MINUS,
+				from, line, filename, i, null_to_eof(actline), null_to_eof(refline));
 		++i;
 		free(actline);
 	}
-	free(actline);
 	va_end(vargs);
 	fclose(file);
-	return (res);
+	return (full_match);
 }
 
-void	test_prog_args(t_prog *prog, int size, ...)
+void	test_prog_args(t_prog *prog, ...)
 {
 	int		i;
 	va_list vargs;
+	int		size;
 
+	size = 0;
+	va_start(vargs, prog);
+	while (va_arg(vargs, char*) != NULL)
+		++size;
+	va_end(vargs);
 	prog->args = calloc(size + 1, sizeof(char *));
 	prog->args[size] = NULL;
-	va_start(vargs, size);
+	va_start(vargs, prog);
 	i = 0;
 	while (i < size)
 		prog->args[i++] = strdup(va_arg(vargs, char*));
@@ -228,13 +259,13 @@ void	test_prog_args(t_prog *prog, int size, ...)
 void	test_prog_redirs(t_prog *prog, const char *in, const char *out)
 {
 	if (in != NULL)
-		prog->in_redir.name = strdup(in);
+		prog->in_redir.path = strdup(in);
 	else
-		prog->in_redir.name = NULL;
+		prog->in_redir.path = NULL;
 	if (out != NULL)
-		prog->out_redir.name = strdup(out);
+		prog->out_redir.path = strdup(out);
 	else
-		prog->out_redir.name = NULL;
+		prog->out_redir.path = NULL;
 }
 
 void	test_line_init(t_line *line, int size)
@@ -280,6 +311,12 @@ void	test_restore_stdout(int stdout_fd)
 void	test_start(const char *test_name)
 {
 	fprintf(stderr, "%s %s\n", TEST_STR_RUN, test_name);
+}
+
+void	test_start_clean(const char *test_name)
+{
+	test_start(test_name);
+	test_remove_files_from_dir("out");
 }
 
 int	test_end(const char *test_name, int success)
