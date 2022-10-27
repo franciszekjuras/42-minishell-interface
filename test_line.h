@@ -132,13 +132,15 @@ int	test_line_eq(t_line *actual, t_line *expected)
 	return (1);
 }
 
-int	test_line_eq_print(t_line *actual, t_line *expected)
+#define test_expect_line_eq(...) test_expect_line_eq_x(__FILE__, __LINE__, __VA_ARGS__)
+int	test_expect_line_eq_x(const char *from, int line, t_line *actual, t_line *expected)
 {
 	int	eq;
 
 	eq = test_line_eq(actual, expected);
 	if (!eq)
 	{
+		fprintf(stderr, TEST_FROM, from, line);
 		fprintf(stderr, "Lines don't match:\n");
 		fprintf(stderr, "Actual  : ");
 		test_line_print(actual);
