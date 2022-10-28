@@ -11,8 +11,14 @@
 # include <unistd.h>
 # include "line.h"
 
-# define TEST_START() test_start(__func__)
-# define TEST_START_CLEAN() test_start_clean(__func__)
+# define TEST_FILTER(filter) \
+do { \
+if (filter != NULL && strncmp(__func__, filter, strlen(filter)) != 0) \
+	return (-1); \
+} while(0)
+
+# define TEST_START_CLEAN(filter) {TEST_FILTER(filter); test_start_clean(__func__);}
+# define TEST_START(filter) {TEST_FILTER(filter); test_start(__func__);}
 # define TEST_END(res) test_end(__func__, (res))
 
 # define TEST_STR_RUN "\e[1;36m[RUN   ]\e[m"
@@ -23,6 +29,9 @@
 # define TEST_FILE_LINE "\e[36m%s:%d\e[m"
 # define TEST_FILE "\e[36m%s\e[m"
 # define TEST_FROM ">>> \e[33m%s:%d\e[m\n"
+
+typedef int (*t_test_function)(const char *);
+extern const t_test_function g_test_functions[];
 
 static int test_remove_files_from_dir(char *dir_path)
 {
@@ -41,6 +50,15 @@ static int test_remove_files_from_dir(char *dir_path)
 	}
 	closedir(dir);
 	return 0;
+}
+
+void	test_update_results(int test_result, int *passed, int *total)
+{
+	if (test_result < 0)
+		return ;
+	(*total)++;
+	if (test_result)
+		(*passed)++;
 }
 
 void	test_printarr(char **arr, char *sep)
@@ -287,10 +305,9 @@ void	test_line_end(t_line *line, int it)
 	}
 }
 
-int	test_redirect_stdout(const char *filename)
+void	test_redirect_stdout(const char *filename)
 {
 	int	redir_fd;
-	int	stdout_fd;
 
 	redir_fd = creat(filename, 0644);
 	if (redir_fd < 0)
@@ -298,16 +315,14 @@ int	test_redirect_stdout(const char *filename)
 		fprintf(stderr, "%s: %s\n", filename, strerror(errno));
 		exit(1);
 	}
-	stdout_fd = dup(1);
 	dup2(redir_fd, 1);
-	close(redir_fd);
-	return (stdout_fd);
+	if (redir_fd != 1)
+		close(redir_fd);
 }
 
-void	test_restore_stdout(int stdout_fd)
+void	test_close_stdout()
 {
-	dup2(stdout_fd, 1);
-	close(stdout_fd);
+	close(1);
 }
 
 void	test_start(const char *test_name)
@@ -328,6 +343,36 @@ int	test_end(const char *test_name, int success)
 	else
 		fprintf(stderr, "%s %s\n", TEST_STR_FAIL, test_name);
 	return (success);
+}
+
+int	test_main(int argc, char **argv)
+{
+	char	*filter;
+	int		passed;
+	int		total;
+	int		i;
+
+	if (argc == 2)
+		filter = argv[1];
+	else
+		filter = NULL;
+	passed = 0;
+	total = 0;
+	i = 0;
+	while (g_test_functions[i] != NULL)
+		test_update_results(g_test_functions[i++](filter),
+			&passed, &total);
+	fprintf(stderr, "^^^\n");
+	if (passed == total)
+		fprintf(stderr, "    %s all %d tests passed\n", TEST_STR_OK, total);
+	else
+		fprintf(stderr, "    %s %d of %d tests failed\n", TEST_STR_FAIL,
+			total - passed, total);
+	fprintf(stderr, "^^^\n");
+	close(0);
+	close(1);
+	close(2);
+	return (passed < total);
 }
 
 #endif

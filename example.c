@@ -6,7 +6,7 @@
 /*   By: fjuras <fjuras@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/12 20:12:03 by fjuras            #+#    #+#             */
-/*   Updated: 2022/10/27 18:54:38 by fjuras           ###   ########.fr       */
+/*   Updated: 2022/10/28 15:54:36 by fjuras           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,14 +46,14 @@ t_line simplest_parser(char *line_str)
 }
 
 
-int	test_simplest(void)
+int	test_simplest(const char *filter)
 {
 	t_line	line;
 	t_line	expect;
 	int		i;
 	int		res;
 
-	TEST_START();
+	TEST_START(filter);
 	i = 0;
 	test_line_init(&expect, 1);
 	test_prog_args(&expect.progs[i], "ls", NULL);
@@ -66,14 +66,14 @@ int	test_simplest(void)
 	return (TEST_END(res));
 }
 
-int	test_bit_harder(void)
+int	test_bit_harder(const char *filter)
 {
 	t_line	line;
 	t_line	expect;
 	int		i;
 	int		res;
 
-	TEST_START();
+	TEST_START(filter);
 	i = 0;
 	test_line_init(&expect, 1);
 	test_prog_args(&expect.progs[i], "grep", "total", NULL);
@@ -86,14 +86,14 @@ int	test_bit_harder(void)
 	return (TEST_END(res));
 }
 
-int	test_dummy_passing(void)
+int	test_dummy_passing(const char *filter)
 {
 	t_line	line;
 	t_line	expect;
 	int		i;
 	int		res;
 
-	TEST_START();
+	TEST_START(filter);
 	i = 0;
 	test_line_init(&expect, 2);
 	test_prog_args(&expect.progs[i], "ls", "-l", NULL);
@@ -108,14 +108,14 @@ int	test_dummy_passing(void)
 	return (TEST_END(res));
 }
 
-int	test_dummy_not_passing(void)
+int	test_dummy_not_passing(const char *filter)
 {
 	t_line	line;
 	t_line	expect;
 	int		i;
 	int		res;
 
-	TEST_START();
+	TEST_START(filter);
 	i = 0;
 	test_line_init(&expect, 3);
 	test_prog_args(&expect.progs[i], "ls", "-l", NULL);
@@ -132,14 +132,14 @@ int	test_dummy_not_passing(void)
 	return (TEST_END(res));
 }
 
-int	test_dummy_broken(void)
+int	test_dummy_broken(const char *filter)
 {
 	t_line	line;
 	t_line	expect;
 	int		i;
 	int		res;
 
-	TEST_START();
+	TEST_START(filter);
 	i = 0;
 	test_line_init(&expect, 3);
 	test_prog_args(&expect.progs[i], "ls", "-l", NULL);
@@ -152,7 +152,8 @@ int	test_dummy_broken(void)
 	return (TEST_END(res));
 }
 
-int (*const test_functions[])() = {
+const t_test_function g_test_functions[] =
+{
 	test_simplest,
 	test_bit_harder,
     test_dummy_not_passing,
@@ -161,24 +162,7 @@ int (*const test_functions[])() = {
     NULL
 };
 
-int	main(void)
+int	main(int argc, char **argv)
 {
-	int	passed;
-	int	total;
-
-	passed = 0;
-	total = 0;
-	while (test_functions[total] != NULL)
-	{
-		passed += test_functions[total]();
-		++total;
-	}
-	printf("^^^\n");
-	if (passed == total)
-		printf("    %s all %d tests passed\n", TEST_STR_OK, total);
-	else
-		printf("    %s %d of %d tests failed\n", TEST_STR_FAIL,
-			total - passed, total);
-	printf("^^^\n");
-	return (passed < total);
+	return (test_main(argc, argv));
 }
