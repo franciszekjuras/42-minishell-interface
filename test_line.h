@@ -8,6 +8,8 @@
 # include <stdlib.h>
 # include <string.h>
 # include <stdarg.h>
+# include <sys/stat.h>
+# include <sys/types.h>
 # include <unistd.h>
 # include "line.h"
 
@@ -29,6 +31,7 @@ if (filter != NULL && strncmp(__func__, filter, strlen(filter)) != 0) \
 # define TEST_FILE_LINE "\e[36m%s:%d\e[m"
 # define TEST_FILE "\e[36m%s\e[m"
 # define TEST_FROM ">>> \e[33m%s:%d\e[m\n"
+# define TEST_NONL "\\ No newline at end of file"
 
 typedef int (*t_test_function)(const char *);
 extern const t_test_function g_test_functions[];
@@ -209,6 +212,29 @@ const char	*null_to_eof(const char *str)
 		return (str);
 }
 
+#define test_expect_file_size(...) test_expect_file_size_x(__FILE__, __LINE__, __VA_ARGS__)
+int	test_expect_file_size_x(const char *from, int line, const char *filename, long size)
+{
+	struct stat	st;
+
+	if (stat(filename, &st) < 0)
+	{
+		fprintf(stderr, TEST_FROM TEST_FILE ": %s\n",
+			from, line, filename, strerror(errno));
+		return (0);
+	}
+	if (st.st_size != size)
+	{
+		fprintf(stderr, TEST_FROM, from, line);
+		fprintf(stderr, TEST_FILE " size does not match:\n", filename);
+		fprintf(stderr, "Actual  : %ld\n", st.st_size);
+		fprintf(stderr, "Expected: %ld\n", size);
+		return (0);
+	}
+	else
+		return (1);
+}
+
 #define test_expect_file_content(...) test_expect_file_content_x(__FILE__, __LINE__, __VA_ARGS__)
 int	test_expect_file_content_x(const char *from, int line, const char *filename, ...)
 {
@@ -362,13 +388,13 @@ int	test_main(int argc, char **argv)
 	while (g_test_functions[i] != NULL)
 		test_update_results(g_test_functions[i++](filter),
 			&passed, &total);
-	fprintf(stderr, "^^^\n");
+	fprintf(stderr, "----\n");
 	if (passed == total)
 		fprintf(stderr, "    %s all %d tests passed\n", TEST_STR_OK, total);
 	else
 		fprintf(stderr, "    %s %d of %d tests failed\n", TEST_STR_FAIL,
 			total - passed, total);
-	fprintf(stderr, "^^^\n");
+	fprintf(stderr, "----\n");
 	close(0);
 	close(1);
 	close(2);
