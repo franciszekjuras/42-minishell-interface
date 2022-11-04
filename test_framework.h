@@ -36,7 +36,7 @@ if (filter != NULL && strncmp(__func__, filter, strlen(filter)) != 0) \
 typedef int (*t_test_function)(const char *);
 extern const t_test_function g_test_functions[];
 
-static int test_remove_files_from_dir(char *dir_path)
+int test_remove_files_from_dir(char *dir_path)
 {
 	DIR				*dir;
 	struct dirent	*next_file;
@@ -53,6 +53,33 @@ static int test_remove_files_from_dir(char *dir_path)
 	}
 	closedir(dir);
 	return 0;
+}
+
+void	test_strarr_free(char **strarr)
+{
+	int	i;
+
+	i = 0;
+	while (strarr[i] != 0)
+		free(strarr[i++]);
+	free(strarr);
+}
+
+void	test_line_free(t_line line)
+{
+	int		i;
+	t_prog	*prog;
+
+	i = 0;
+	while (i < line.size)
+	{
+		prog = &line.progs[i];
+		test_strarr_free(prog->args);
+		free(prog->in_redir.path);
+		free(prog->out_redir.path);
+		++i;
+	}
+	free(line.progs);
 }
 
 void	test_update_results(int test_result, int *passed, int *total)
@@ -280,6 +307,43 @@ int	test_expect_file_content_x(const char *from, int line, const char *filename,
 	va_end(vargs);
 	fclose(file);
 	return (full_match);
+}
+
+char	**test_make_environ(char *first, ...)
+{
+	int		i;
+	va_list vargs;
+	int		size;
+	char	*var;
+	char	**environ;
+
+	size = 0;
+	va_start(vargs, first);
+	var = first;
+	while (var != NULL)
+	{
+		var = va_arg(vargs, char*);
+		++size;
+	}
+	va_end(vargs);
+	environ = calloc(size + 1, sizeof(char *));
+	environ[size] = NULL;
+	va_start(vargs, first);
+	i = 0;
+	var = first;
+	while (i < size)
+	{
+		environ[i] = strdup(var);
+		var = va_arg(vargs, char*);
+		++i;
+	}
+	va_end(vargs);
+	return (environ);
+}
+
+void	test_free_environ(char **env)
+{
+	test_strarr_free(env);
 }
 
 void	test_prog_args(t_prog *prog, ...)

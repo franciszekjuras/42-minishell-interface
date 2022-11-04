@@ -1,41 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   line.c                                             :+:      :+:    :+:   */
+/*   env.h                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fjuras <fjuras@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/10/12 16:50:14 by fjuras            #+#    #+#             */
-/*   Updated: 2022/10/26 21:16:45 by fjuras           ###   ########.fr       */
+/*   Created: 2022/11/03 20:07:41 by fjuras            #+#    #+#             */
+/*   Updated: 2022/11/04 11:00:22 by fjuras           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h>
-#include "line.h"
+#ifndef ENV_H
+# define ENV_H
 
-void	args_free(char **args)
+typedef struct s_env
 {
-	int	i;
+	char	**vars;
+	char	**path;
+	int		last_exit_status;
+}	t_env;
 
-	i = 0;
-	while (args[i] != 0)
-		free(args[i++]);
-	free(args);
-}
-
-void	line_free(t_line line)
-{
-	int		i;
-	t_prog	*prog;
-
-	i = 0;
-	while (i < line.size)
-	{
-		prog = &line.progs[i];
-		args_free(prog->args);
-		free(prog->in_redir.path);
-		free(prog->out_redir.path);
-		++i;
-	}
-	free(line.progs);
-}
+#endif

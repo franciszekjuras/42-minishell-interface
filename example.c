@@ -6,14 +6,14 @@
 /*   By: fjuras <fjuras@student.42wolfsburg.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/12 20:12:03 by fjuras            #+#    #+#             */
-/*   Updated: 2022/10/28 15:54:36 by fjuras           ###   ########.fr       */
+/*   Updated: 2022/11/04 10:39:36 by fjuras           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdlib.h>
 #include <string.h>
 #include "line.h"
-#include "test_line.h"
+#include "test_framework.h"
 
 t_line	dummy_parser(const char * line_str)
 {	
@@ -45,7 +45,6 @@ t_line simplest_parser(char *line_str)
 	return (line);
 }
 
-
 int	test_simplest(const char *filter)
 {
 	t_line	line;
@@ -61,8 +60,8 @@ int	test_simplest(const char *filter)
 	test_line_end(&expect, i);
 	line = simplest_parser("ls");
 	res = test_expect_line_eq(&line, &expect);
-	line_free(line);
-	line_free(expect);
+	test_line_free(line);
+	test_line_free(expect);
 	return (TEST_END(res));
 }
 
@@ -81,8 +80,8 @@ int	test_bit_harder(const char *filter)
 	test_line_end(&expect, i);
 	line = simplest_parser("grep total");
 	res = test_expect_line_eq(&line, &expect);
-	line_free(line);
-	line_free(expect);
+	test_line_free(line);
+	test_line_free(expect);
 	return (TEST_END(res));
 }
 
@@ -103,8 +102,8 @@ int	test_dummy_passing(const char *filter)
 	test_line_end(&expect, i);
 	line = dummy_parser("<in.txt ls -l | grep total >out.txt");
 	res = test_expect_line_eq(&line, &expect);
-	line_free(line);
-	line_free(expect);
+	test_line_free(line);
+	test_line_free(expect);
 	return (TEST_END(res));
 }
 
@@ -127,8 +126,8 @@ int	test_dummy_not_passing(const char *filter)
 	test_line_end(&expect, i);
 	line = dummy_parser("<in.txt ls -l | grep total >out.txt");
 	res = test_expect_line_eq(&line, &expect);
-	line_free(line);
-	line_free(expect);
+	test_line_free(line);
+	test_line_free(expect);
 	return (TEST_END(res));
 }
 
@@ -147,8 +146,8 @@ int	test_dummy_broken(const char *filter)
 	test_line_end(&expect, i);
 	line = dummy_parser("<in.txt ls -l | grep total >out.txt");	
 	res = test_expect_line_eq(&line, &expect);
-	line_free(line);
-	line_free(expect);
+	test_line_free(line);
+	test_line_free(expect);
 	return (TEST_END(res));
 }
 
