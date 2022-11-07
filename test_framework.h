@@ -32,6 +32,7 @@ if (filter != NULL && strncmp(__func__, filter, strlen(filter)) != 0) \
 # define TEST_FILE "\e[36m%s\e[m"
 # define TEST_FROM ">>> \e[33m%s:%d\e[m\n"
 # define TEST_NONL "\\ No newline at end of file"
+# define TEST_BOLD(x) "\e[1m" x "\e[m"
 
 typedef int (*t_test_function)(const char *);
 extern const t_test_function g_test_functions[];
@@ -454,9 +455,9 @@ int	test_main(int argc, char **argv)
 			&passed, &total);
 	fprintf(stderr, "----\n");
 	if (passed == total)
-		fprintf(stderr, "    %s all %d tests passed\n", TEST_STR_OK, total);
+		fprintf(stderr, "    %s " TEST_BOLD("all %d tests passed\n"), TEST_STR_OK, total);
 	else
-		fprintf(stderr, "    %s %d of %d tests failed\n", TEST_STR_FAIL,
+		fprintf(stderr, "    %s " TEST_BOLD("%d of %d tests failed\n"), TEST_STR_FAIL,
 			total - passed, total);
 	fprintf(stderr, "----\n");
 	close(0);
