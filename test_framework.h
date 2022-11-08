@@ -396,6 +396,24 @@ void	test_line_end(t_line *line, int it)
 	}
 }
 
+char	**test_get_cwd_var(void)
+{
+	static char	*cwd;
+
+	return (&cwd);
+}
+
+void	test_store_cwd(void)
+{
+	*test_get_cwd_var() = getcwd(NULL, 0);
+}
+
+void 	test_restore_cwd(void)
+{
+	chdir(*test_get_cwd_var());
+	free(*test_get_cwd_var());
+}
+
 void	test_redirect_stdout(const char *filename)
 {
 	int	redir_fd;
